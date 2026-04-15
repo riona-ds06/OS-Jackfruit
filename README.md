@@ -1,8 +1,8 @@
 # Multi-Container Runtime
 
 Team:
-*Riona Jeena Dsouza - PES2UG24CS654
-*Ramya - PES2UG24CS653
+*`Riona Jeena Dsouza - PES2UG24CS654`
+*`Ramya - PES2UG24CS653`
 
 ## **Project Summary**
 
@@ -19,13 +19,13 @@ Implements a Linux Kernel Module (LKM) that tracks container processes, enforces
 
 ## **Repository Layout**
 
-*engine.c: user-space supervisor, CLI, container launch path, logging pipeline
-*monitor.c: Linux kernel module for container memory monitoring
-*monitor_ioctl.h: shared ioctl definitions
-*cpu_hog.c: CPU-bound workload
-*io_pulse.c: I/O-oriented workload
-*memory_hog.c: memory pressure workload
-*Makefile: build targets for user-space and kernel-space components
+*`engine.c: user-space supervisor, CLI, container launch path, logging pipeline`
+*`monitor.c: Linux kernel module for container memory monitoring`
+*`monitor_ioctl.h: shared ioctl definitions`
+*`cpu_hog.c: CPU-bound workload`
+*`io_pulse.c: I/O-oriented workload`
+*`memory_hog.c: memory pressure workload`
+*`Makefile: build targets for user-space and kernel-space components`
 
 ## **Build, Load, and Run Instructions**
 
@@ -228,16 +228,16 @@ The runtime launches containers as children of the supervisor. The supervisor ke
 3. IPC, Threads, and Synchronization
 The design uses two IPC mechanisms:
 
-*control-plane IPC: UNIX domain socket between CLI clients and the supervisor
-*logging IPC: anonymous pipes from container stdout/stderr into the supervisor
+*`control-plane IPC: UNIX domain socket between CLI clients and the supervisor`
+*`logging IPC: anonymous pipes from container stdout/stderr into the supervisor`
 The logging path uses a bounded buffer protected by a mutex plus two condition variables. Producers block when the buffer is full, and the consumer blocks when the buffer is empty. This prevents busy-waiting and makes shutdown explicit. Shared container metadata is protected separately with a dedicated mutex and condition variable, because metadata access and log-buffer access are different critical sections with different waiting behavior.
 
 Without synchronization, several races would occur:
 
-*two concurrent start commands could reuse the same container ID or rootfs
-*producer and consumer threads could corrupt buffer indices
-*ps, stop, and reaping could observe partially updated metadata
-*run could miss the completion of its target container
+*`two concurrent start commands could reuse the same container ID or rootfs`
+*`producer and consumer threads could corrupt buffer indices`
+*`ps, stop, and reaping could observe partially updated metadata`
+*`run could miss the completion of its target container`
 
 4. Memory Management and Enforcement
 RSS measures resident set size: the amount of a process's memory that is currently resident in physical RAM. It does not directly measure total virtual memory size, swapped-out pages, or all kernel-side memory associated with the process. That makes it a useful but incomplete signal for memory pressure.
@@ -252,29 +252,29 @@ The scheduler experiments use the runtime as a platform for controlled compariso
 ---
 
 1. Namespace isolation
-*Choice: clone() with PID, UTS, and mount namespaces plus chroot() into a per-container rootfs
-*Tradeoff: chroot() is simpler than pivot_root() but offers weaker filesystem isolation semantics
-*Justification: it keeps the implementation understandable while still meeting the project requirement for isolated root filesystems and working /proc
+*`Choice: clone() with PID, UTS, and mount namespaces plus chroot() into a per-container rootfs`
+*`Tradeoff: chroot() is simpler than pivot_root() but offers weaker filesystem isolation semantics`
+*`Justification: it keeps the implementation understandable while still meeting the project requirement for isolated root filesystems and working /proc`
 
 2.Supervisor architecture
-*Choice: one long-running supervisor process with a control socket and per-request handler threads
-*Tradeoff: thread-based concurrency adds synchronization complexity
-*Justification: it allows run to wait for a container without blocking the entire supervisor from serving other CLI requests
+*`Choice: one long-running supervisor process with a control socket and per-request handler threads`
+*`Tradeoff: thread-based concurrency adds synchronization complexity`
+*`Justification: it allows run to wait for a container without blocking the entire supervisor from serving other CLI requests`
 
 3.IPC and logging
-*Choice: UNIX domain socket for control requests and pipes for log capture
-*Tradeoff: two IPC mechanisms increase implementation surface area
-*Justification: the project explicitly requires the control plane to be distinct from the logging plane, and this split matches their roles naturally
+*`Choice: UNIX domain socket for control requests and pipes for log capture`
+*`Tradeoff: two IPC mechanisms increase implementation surface area`
+*`Justification: the project explicitly requires the control plane to be distinct from the logging plane, and this split matches their roles naturally`
 
 4.Kernel monitor
-*Choice: linked-list tracking protected by a mutex, with timer-triggered work executed in workqueue context
-*Tradeoff: this is more complex than doing everything directly in the timer callback
-*Justification: workqueue context allows the monitor to use sleeping primitives safely while still checking memory periodically
+*`Choice: linked-list tracking protected by a mutex, with timer-triggered work executed in workqueue context`
+*`Tradeoff: this is more complex than doing everything directly in the timer callback`
+*`Justification: workqueue context allows the monitor to use sleeping primitives safely while still checking memory periodically`
 
 5.Scheduler experiments
-*Choice: CPU-bound, I/O-bound, and memory-growth workloads built as standalone helpers
-*Tradeoff: these workloads are intentionally simple and are not perfect models of production programs
-*Justification: they are predictable enough for classroom experiments and easy to reproduce in screenshots and analysis
+*`Choice: CPU-bound, I/O-bound, and memory-growth workloads built as standalone helpers`
+*`Tradeoff: these workloads are intentionally simple and are not perfect models of production programs`
+*`Justification: they are predictable enough for classroom experiments and easy to reproduce in screenshots and analysis`
 
 
 ## **Scheduler Experiment Results**
